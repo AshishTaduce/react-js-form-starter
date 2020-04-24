@@ -14,6 +14,7 @@ class EnquiryForm extends React.Component {
         number: '',
         isSubmitting: false,
         userData: [],
+        lastUserDeleted: undefined,
     };
 
     constructor(props) {
@@ -60,6 +61,7 @@ class EnquiryForm extends React.Component {
             customerId: data.customerID,
         });
         userField['customerID'] = data.customerID;
+        userField['deleting'] = false;
         temp.push(userField);
         this.setState({
             userData: temp,
@@ -72,6 +74,62 @@ class EnquiryForm extends React.Component {
         localStorage.setItem('userDataBase', JSON.stringify(this.state.userData));
     }
 
+    removeUser(customerId){
+        let temp = this.state.userData.slice();
+            let index = temp.findIndex((e) => e.customerID === customerId);
+            // if(!temp[index].deleting){
+                console.log('Beginning to delete customer: ', customerId);
+                temp[index].deleting = true;
+                this.setState({
+                    userData:temp,
+                });
+                this.callDelete(customerId);
+            // }
+    }
+
+    undoLastDelete(){
+        if(this.state.lastUserDeleted !== undefined){
+            let temp = this.state.userData.slice();
+            let [userDeleted, index] = this.state.lastUserDeleted;
+            userDeleted.deleting = false;
+            temp.splice(index, 0, userDeleted);
+            this.setState({
+                userData: temp,
+                lastUserDeleted: undefined,
+            })
+        }
+    }
+
+    async callDelete(customerId){
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // body: JSON.stringify('Hi there')
+        };
+        let request = await fetch('https://cors-anywhere.herokuapp.com/https://us-central1-form-manager-7234f.cloudfunctions.net/saveCustomer', requestOptions);
+        setTimeout(() =>{
+            // console.log('Finished delete request, index of element to delete: ', customerId);
+            let temp = this.state.userData.slice();
+            let userDeleted =  [
+                this.state.userData[this.state.userData.findIndex((e) => e.customerID === customerId)],
+                this.state.userData.findIndex((e) => e.customerID === customerId)
+            ];
+            console.log('UserDeleted was: ', userDeleted);
+            temp.splice(temp.findIndex((e) => e.customerID === customerId), 1);
+            userDeleted.deleting = false;
+            this.setState({
+                userData:temp,
+                lastUserDeleted: userDeleted,
+            });
+            localStorage.setItem('userDataBase', JSON.stringify(this.state.userData));
+        }, 2500);
+        // console.log('Finished delete request, reponse: ', data);
+        // temp.splice(index, 1);
+        // this.setState({
+        //     userData:temp,
+        // });
+        // localStorage.setItem('userDataBase', JSON.stringify(this.state.userData));
+    }
     render() {
         // className={'enquiry-Field'}
             return (
@@ -90,7 +148,11 @@ class EnquiryForm extends React.Component {
                             {this.state.isSubmitting ? <CircularProgress color={"secondary"}/> : null}
                         </div>
                     </Paper>
-                    <UsersTable usersMaps = {this.state.userData}/>
+                    <UsersTable usersMaps = {this.state.userData} removeUser = {this.removeUser.bind(this)}/>
+                    {this.state.lastUserDeleted !== undefined
+                        ? <Button variant="outlined" onClick={this.undoLastDelete.bind(this)}>Undo Delete</Button>
+                        : null
+                    }
                 </div>
             );
     }
