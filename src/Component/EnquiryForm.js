@@ -4,8 +4,6 @@ import UsersTable from "./UserTable";
 import  '../App.css';
 import Paper from "@material-ui/core/Paper";
 
-
-
 class EnquiryForm extends React.Component {
     state = {
         customerId: '',
@@ -78,7 +76,7 @@ class EnquiryForm extends React.Component {
         let temp = this.state.userData.slice();
             let index = temp.findIndex((e) => e.customerID === customerId);
             // if(!temp[index].deleting){
-                console.log('Beginning to delete customer: ', customerId);
+            //     console.log('Beginning to delete customer: ', customerId);
                 temp[index].deleting = true;
                 this.setState({
                     userData:temp,
@@ -114,7 +112,7 @@ class EnquiryForm extends React.Component {
                 this.state.userData[this.state.userData.findIndex((e) => e.customerID === customerId)],
                 this.state.userData.findIndex((e) => e.customerID === customerId)
             ];
-            console.log('UserDeleted was: ', userDeleted);
+            // console.log('UserDeleted was: ', userDeleted);
             temp.splice(temp.findIndex((e) => e.customerID === customerId), 1);
             userDeleted.deleting = false;
             this.setState({
@@ -123,12 +121,6 @@ class EnquiryForm extends React.Component {
             });
             localStorage.setItem('userDataBase', JSON.stringify(this.state.userData));
         }, 2500);
-        // console.log('Finished delete request, reponse: ', data);
-        // temp.splice(index, 1);
-        // this.setState({
-        //     userData:temp,
-        // });
-        // localStorage.setItem('userDataBase', JSON.stringify(this.state.userData));
     }
     render() {
         // className={'enquiry-Field'}
