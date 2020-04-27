@@ -8,7 +8,6 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from "@material-ui/core/CircularProgress";
 
 export default function UsersTable(props) {
-    console.log('Table data: ', props);
     return <div className={"table"}>
         <Table>
             <TableHead>
@@ -27,10 +26,10 @@ export default function UsersTable(props) {
                     <TableCell align="center">{userData.number}</TableCell>
                     <TableCell align="center">{userData.gender}</TableCell>
                     <IconButton aria-label="delete"
+                                className={"undo-button"}
                                 onClick={() => {
                                     props.removeUser(userData.customerID);}}>
                        {userData.deleting ?  <CircularProgress/> : <DeleteIcon/>}
-
                     </IconButton>
                 </TableRow>
                 }
