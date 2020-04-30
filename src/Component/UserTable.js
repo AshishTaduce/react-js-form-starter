@@ -26,10 +26,10 @@ export default function UsersTable(props) {
                     <TableCell align="center">{userData.number}</TableCell>
                     <TableCell align="center">{userData.gender}</TableCell>
                     <IconButton aria-label="delete"
+                                className={"undo-button"}
                                 onClick={() => {
                                     props.removeUser(userData.customerID);}}>
                        {userData.deleting ?  <CircularProgress/> : <DeleteIcon/>}
-
                     </IconButton>
                 </TableRow>
                 }
