@@ -3,6 +3,7 @@ import {Button, CircularProgress, MenuItem, Select, TextField} from '@material-u
 import UsersTable from "./UserTable";
 import  '../App.css';
 import Paper from "@material-ui/core/Paper";
+import Snackbar from "@material-ui/core/Snackbar";
 
 class EnquiryForm extends React.Component {
     state = {
@@ -14,6 +15,7 @@ class EnquiryForm extends React.Component {
         userData: [],
         lastUserDeleted: undefined,
         isLoading: true,
+        showUndo: false,
     };
 
     constructor(props) {
@@ -82,7 +84,6 @@ class EnquiryForm extends React.Component {
             const requestOptions = {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
-                // body: JSON.stringify(userField)
             };
             let request = await fetch('http://localhost:5004/customer/undoDelete', requestOptions);
             let data = await request.json();
@@ -99,7 +100,9 @@ class EnquiryForm extends React.Component {
     }
 
     async callDelete(customerId){
-        console.log('Customer for delete is : ', customerId);
+        this.setState({
+            showUndo: true,
+        })
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -107,22 +110,21 @@ class EnquiryForm extends React.Component {
         };
         let request = await fetch(`http://localhost:5004/customer/delete/${customerId}`, requestOptions);
         let data = await request.json();
-        console.log('Id deleted: ', data);
+        let temp = this.state.userData.slice();
+        let userDeleted =  [
+            this.state.userData[this.state.userData.findIndex((e) => e.customerID === customerId)],
+            this.state.userData.findIndex((e) => e.customerID === customerId)
+        ];
+        temp.splice(temp.findIndex((e) => e.customerID === customerId), 1);
+        userDeleted.deleting = false;
+        this.setState({
+            userData:temp,
+            lastUserDeleted: userDeleted,
+        });
         setTimeout(() =>{
-            // console.log('Finished delete request, index of element to delete: ', customerId);
-            let temp = this.state.userData.slice();
-            let userDeleted =  [
-                this.state.userData[this.state.userData.findIndex((e) => e.customerID === customerId)],
-                this.state.userData.findIndex((e) => e.customerID === customerId)
-            ];
-            // console.log('UserDeleted was: ', userDeleted);
-            temp.splice(temp.findIndex((e) => e.customerID === customerId), 1);
-            userDeleted.deleting = false;
             this.setState({
-                userData:temp,
-                lastUserDeleted: userDeleted,
-            });
-            localStorage.setItem('userDataBase', JSON.stringify(this.state.userData));
+                showUndo: false,
+            })
         }, 2500);
     }
 
@@ -155,10 +157,21 @@ class EnquiryForm extends React.Component {
                         </div>
                     </Paper>
                     {this.state.isLoading ? <CircularProgress color={"primary"}/> : <UsersTable usersMaps = {this.state.userData} removeUser = {this.removeUser.bind(this)}/>}
-                    {this.state.lastUserDeleted !== undefined
-                        ? <Button variant="outlined" onClick={this.undoLastDelete.bind(this)}>Undo Delete</Button>
-                        : null
-                    }
+                    {/*{this.state.lastUserDeleted !== undefined*/}
+                    {/*    ? <Button variant="outlined" onClick={this.undoLastDelete.bind(this)}>Undo Delete</Button>*/}
+                    {/*    : null*/}
+                    {/*}*/}
+                    <Snackbar open={this.state.lastUserDeleted !== undefined && this.state.showUndo}
+                              message={'User deleted'}
+                              autoHideDuration={2500}
+                              onClose={() => {
+                                this.setState({
+                                  lastUserDeleted: null,
+                                  })
+                                }
+                              }
+                              action={<Button variant="outlined" onClick={this.undoLastDelete.bind(this)}>Undo Delete</Button>}
+                    />
                 </div>
             );
     }
