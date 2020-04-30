@@ -8,7 +8,6 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from "@material-ui/core/CircularProgress";
 
 export default function UsersTable(props) {
-    console.log('Table data: ', props);
     return <div className={"table"}>
         <Table>
             <TableHead>

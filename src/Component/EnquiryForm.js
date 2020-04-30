@@ -13,6 +13,7 @@ class EnquiryForm extends React.Component {
         isSubmitting: false,
         userData: [],
         lastUserDeleted: undefined,
+        isLoading: true,
     };
 
     constructor(props) {
@@ -21,7 +22,6 @@ class EnquiryForm extends React.Component {
     }
 
     handleInputChange(event) {
-        console.log('Target field',event.target.name);
         this.setState(
             {
                 [event.target.name]: event.target.value
@@ -30,12 +30,7 @@ class EnquiryForm extends React.Component {
     }
 
     componentDidMount() {
-        let tempData = JSON.parse(localStorage.getItem('userDataBase'));
-        if(tempData !== null){
-            this.setState({
-                userData: tempData,
-            });
-        }
+        this.getCustomers();
     }
 
     async handleSubmission (){
@@ -52,7 +47,7 @@ class EnquiryForm extends React.Component {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userField)
         };
-        let request = await fetch('https://cors-anywhere.herokuapp.com/https://us-central1-form-manager-7234f.cloudfunctions.net/saveCustomer', requestOptions);
+        let request = await fetch('http://localhost:5004/customer/add', requestOptions);
         let data = await request.json();
         console.log('Response: ', data);
         this.setState({
@@ -69,14 +64,11 @@ class EnquiryForm extends React.Component {
             number: '',
             isSubmitting: false,
         });
-        localStorage.setItem('userDataBase', JSON.stringify(this.state.userData));
     }
 
     removeUser(customerId){
         let temp = this.state.userData.slice();
             let index = temp.findIndex((e) => e.customerID === customerId);
-            // if(!temp[index].deleting){
-            //     console.log('Beginning to delete customer: ', customerId);
                 temp[index].deleting = true;
                 this.setState({
                     userData:temp,
@@ -85,8 +77,16 @@ class EnquiryForm extends React.Component {
             // }
     }
 
-    undoLastDelete(){
+    async undoLastDelete(){
         if(this.state.lastUserDeleted !== undefined){
+            const requestOptions = {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                // body: JSON.stringify(userField)
+            };
+            let request = await fetch('http://localhost:5004/customer/undoDelete', requestOptions);
+            let data = await request.json();
+            console.log('Response from undoDelete: ', data);
             let temp = this.state.userData.slice();
             let [userDeleted, index] = this.state.lastUserDeleted;
             userDeleted.deleting = false;
@@ -99,12 +99,15 @@ class EnquiryForm extends React.Component {
     }
 
     async callDelete(customerId){
+        console.log('Customer for delete is : ', customerId);
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // body: JSON.stringify('Hi there')
+            body: JSON.stringify({id: customerId})
         };
-        let request = await fetch('https://cors-anywhere.herokuapp.com/https://us-central1-form-manager-7234f.cloudfunctions.net/saveCustomer', requestOptions);
+        let request = await fetch(`http://localhost:5004/customer/delete/${customerId}`, requestOptions);
+        let data = await request.json();
+        console.log('Id deleted: ', data);
         setTimeout(() =>{
             // console.log('Finished delete request, index of element to delete: ', customerId);
             let temp = this.state.userData.slice();
@@ -122,6 +125,17 @@ class EnquiryForm extends React.Component {
             localStorage.setItem('userDataBase', JSON.stringify(this.state.userData));
         }, 2500);
     }
+
+    async getCustomers(){
+        let customers = await fetch('http://localhost:5004/customers');
+        let data = await customers.json();
+        this.setState({
+            userData: data,
+            isLoading:false,
+        });
+        console.log(data, 'DATA FROM SERVER: ');
+    }
+
     render() {
         // className={'enquiry-Field'}
             return (
@@ -140,7 +154,7 @@ class EnquiryForm extends React.Component {
                             {this.state.isSubmitting ? <CircularProgress color={"secondary"}/> : null}
                         </div>
                     </Paper>
-                    <UsersTable usersMaps = {this.state.userData} removeUser = {this.removeUser.bind(this)}/>
+                    {this.state.isLoading ? <CircularProgress color={"primary"}/> : <UsersTable usersMaps = {this.state.userData} removeUser = {this.removeUser.bind(this)}/>}
                     {this.state.lastUserDeleted !== undefined
                         ? <Button variant="outlined" onClick={this.undoLastDelete.bind(this)}>Undo Delete</Button>
                         : null
