@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React from "react";
 import Table from "@material-ui/core/Table";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
@@ -21,19 +21,18 @@ export default function UsersTable(props) {
             </TableHead>
             {props.usersMaps.map((userData) => {
                 return <TableRow>
-                    <TableCell align="center">{userData.customerID}</TableCell>
+                    <TableCell align="center">{userData._id}</TableCell>
                     <TableCell align="center">{userData.name}</TableCell>
                     <TableCell align="center">{userData.number}</TableCell>
                     <TableCell align="center">{userData.gender}</TableCell>
                     <IconButton aria-label="delete"
                                 className={"undo-button"}
                                 onClick={() => {
-                                    props.removeUser(userData.customerID);}}>
+                                    props.removeUser(userData._id);}}>
                        {userData.deleting ?  <CircularProgress/> : <DeleteIcon/>}
                     </IconButton>
                 </TableRow>
-                }
-            )}
+            })}
         </Table>
         {/*{props.usersMaps.map()}*/}
     </div>;
